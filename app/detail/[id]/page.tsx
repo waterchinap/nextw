@@ -20,7 +20,9 @@ export default function RouteWeatherDetailPage() {
         try {
           setIsLoading(true);
           setError(null);
-          const data = await getRouteDetailByName(id as string);
+          // Decode the URL parameter to handle Chinese characters properly
+          const decodedName = decodeURIComponent(id as string);
+          const data = await getRouteDetailByName(decodedName);
           setRouteDetail(data);
         } catch (err) {
           setError('获取路线详情失败。请重试。');

@@ -10,7 +10,12 @@ interface StationWeatherProps {
   sid: string;
 }
 
+// 添加延迟函数
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 async function getWeatherData(sid: string): Promise<WeatherData> {
+  // 添加1秒延迟以避免请求过于频繁
+  await delay(1000);
   const res = await fetch(`/api/weather?city=${sid}`);
   if (!res.ok) {
     throw new Error('Failed to fetch weather data');

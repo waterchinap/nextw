@@ -43,7 +43,7 @@ export default function SavedWaysListPage() {
           <ul className="bg-white rounded-lg shadow-md divide-y divide-gray-200">
             {savedWays.map((way) => (
               <li key={way.sid} className="px-6 py-4">
-                <Link href={`/detail/${way.name}`} className="text-xl font-semibold text-blue-600 hover:text-blue-800 hover:underline">
+                <Link href={`/detail/${encodeURIComponent(way.name)}`} className="text-xl font-semibold text-blue-600 hover:text-blue-800 hover:underline">
                   {way.name}
                 </Link>
               </li>
