@@ -47,9 +47,7 @@ export default async function Home() {
         <p className="text-gray-600 mb-4">
           数据发布时间: {forecast.reporttime}
         </p>
-        
-        <WeatherCard casts={forecast.casts} />
-        
+          <WeatherCard casts={forecast.casts} city={forecast.city} />
         {/* 刷新按钮 - 使用表单POST请求触发重新验证 */}
         <form 
           action={async () => {

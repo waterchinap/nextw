@@ -9,7 +9,7 @@ export default function Navbar() {
   const navItems = [
     { name: '首页', path: '/' },
     { name: '所有路线', path: '/allways' },
-    { name: '保存路线', path: '/getway' },
+    { name: '保存路线', path: '/routeplan' },
     { name: '关于', path: '/about' },
   ];
 
