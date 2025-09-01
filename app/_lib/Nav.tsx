@@ -8,8 +8,8 @@ export default function Navbar() {
   
   const navItems = [
     { name: '首页', path: '/' },
-    { name: '所有路线', path: '/allways' },
-    { name: '保存路线', path: '/routeplan' },
+    { name: '路线', path: '/allways' },
+    { name: '规划', path: '/routeplan' },
     { name: '关于', path: '/about' },
   ];
 
@@ -19,7 +19,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold text-indigo-600">
-              天气预报系统
+              路线天气
             </Link>
           </div>
           <div className="flex items-center space-x-8">

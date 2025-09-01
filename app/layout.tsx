@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "天气预报系统",
-  description: "基于高德地图API的天气预报系统",
+  title: "路线天气",
+  description: "基于高德地图API的路线天气预报系统",
 };
 
 export default function RootLayout({

@@ -10,7 +10,7 @@ export default function WeatherCard({ casts, city }: WeatherCardProps) {
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">{city}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {casts.map((cast, index) => (
           <div key={index} className="border p-4 rounded">
             <h3 className="font-medium mb-2">
