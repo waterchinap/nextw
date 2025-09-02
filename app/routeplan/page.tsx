@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../_lib/supabaseClient';
-import Loading from '../_lib/Loading';
+import { supabase, getCitiesByProvince, getRegionsByProvinceAndCity } from '../_lib/supabaseClient';
+// import Loading from '../_lib/Loading';
 import ErrorComponent from '../_lib/Error';
 
 interface Region {
@@ -18,9 +18,16 @@ interface Waypoint {
   displayName: string; // Full name for display, e.g., "四川省 - 成都市 - 双流区"
 }
 
+
+// use province data locally
+const provinces = [
+  "安徽省","澳门特别行政区","北京市","重庆市","福建省","甘肃省","广东省","广西壮族自治区","贵州省","海南省","河北省","河南省","黑龙江省","湖北省","湖南省","吉林省","江苏省","江西省","辽宁省","内蒙古自治区","宁夏回族自治区","青海省","山东省","山西省","陕西省","上海市","四川省","台湾省","天津市","西藏自治区","香港特别行政区","新疆维吾尔自治区","云南省","浙江省"
+];
+
+
+
 export default function RoutePlanPage() {
   // Data states
-  const [provinces, setProvinces] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
 
@@ -34,32 +41,13 @@ export default function RoutePlanPage() {
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
 
   // UI states
-  const [isLoadingProvinces, setIsLoadingProvinces] = useState(true);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [isLoadingRegions, setIsLoadingRegions] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch initial provinces
-  useEffect(() => {
-    async function fetchProvinces() {
-      try {
-        setIsLoadingProvinces(true);
-        const res = await fetch('/api/locations/provinces');
-        if (!res.ok) throw new Error('Failed to fetch provinces');
-        const data = await res.json();
-        setProvinces(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setIsLoadingProvinces(false);
-      }
-    }
-    fetchProvinces();
-  }, []);
-
   // Handle province selection
-  const handleProvinceChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const province = e.target.value;
     setSelectedProvince(province);
     setSelectedCity('');
@@ -68,39 +56,29 @@ export default function RoutePlanPage() {
     setRegions([]);
 
     if (province) {
-      try {
-        setIsLoadingCities(true);
-        const res = await fetch(`/api/locations/cities?province=${province}`);
-        if (!res.ok) throw new Error('Failed to fetch cities');
-        const data = await res.json();
-        setCities(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
+      setIsLoadingCities(true);
+      // Fetch cities from Supabase
+      getCitiesByProvince(province).then(fetchedCities => {
+        setCities(fetchedCities);
         setIsLoadingCities(false);
-      }
+      });
     }
   };
 
   // Handle city selection
-  const handleCityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const city = e.target.value;
     setSelectedCity(city);
     setSelectedRegion('');
     setRegions([]);
 
     if (selectedProvince && city) {
-      try {
-        setIsLoadingRegions(true);
-        const res = await fetch(`/api/locations/regions?province=${selectedProvince}&city=${city}`);
-        if (!res.ok) throw new Error('Failed to fetch regions');
-        const data = await res.json();
-        setRegions(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
+      setIsLoadingRegions(true);
+      // Fetch regions from Supabase
+      getRegionsByProvinceAndCity(selectedProvince, city).then(regions => {
+        setRegions(regions);
         setIsLoadingRegions(false);
-      }
+      });
     }
   };
 
@@ -170,24 +148,22 @@ export default function RoutePlanPage() {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Create a New Route Plan (Supabase)</h1>
 
-      {isLoadingProvinces ? <Loading /> : (
-        <div className="space-y-4 md:space-y-0 md:flex md:space-x-4 mb-4">
-          <select value={selectedProvince} onChange={handleProvinceChange} className="block w-full md:w-1/3 p-2 border rounded bg-gray-800 text-white">
-            <option value="">Select Province</option>
-            {provinces.map((prov) => <option key={prov} value={prov}>{prov}</option>)}
-          </select>
+      <div className="space-y-4 md:space-y-0 md:flex md:space-x-4 mb-4">
+        <select value={selectedProvince} onChange={handleProvinceChange} className="block w-full md:w-1/3 p-2 border rounded bg-gray-800 text-white">
+          <option value="">Select Province</option>
+          {provinces.map((prov) => <option key={prov} value={prov}>{prov}</option>)}
+        </select>
 
-          <select value={selectedCity} onChange={handleCityChange} disabled={!selectedProvince || isLoadingCities} className="block w-full md:w-1/3 p-2 border rounded bg-gray-800 text-white disabled:opacity-50">
-            <option value="">{isLoadingCities ? 'Loading...' : 'Select City'}</option>
-            {cities.map((city) => <option key={city} value={city}>{city}</option>)}
-          </select>
+        <select value={selectedCity} onChange={handleCityChange} disabled={!selectedProvince || isLoadingCities} className="block w-full md:w-1/3 p-2 border rounded bg-gray-800 text-white disabled:opacity-50">
+          <option value="">{isLoadingCities ? 'Loading...' : 'Select City'}</option>
+          {cities.map((city) => <option key={city} value={city}>{city}</option>)}
+        </select>
 
-          <select value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value)} disabled={!selectedCity || isLoadingRegions} className="block w-full md:w-1/3 p-2 border rounded bg-gray-800 text-white disabled:opacity-50">
-            <option value="">{isLoadingRegions ? 'Loading...' : 'Select Region'}</option>
-            {regions.map((reg) => <option key={reg.adcode} value={reg.adcode}>{reg.region}</option>)}
-          </select>
-        </div>
-      )}
+        <select value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value)} disabled={!selectedCity || isLoadingRegions} className="block w-full md:w-1/3 p-2 border rounded bg-gray-800 text-white disabled:opacity-50">
+          <option value="">{isLoadingRegions ? 'Loading...' : 'Select Region'}</option>
+          {regions.map((reg) => <option key={reg.adcode} value={reg.adcode}>{reg.region}</option>)}
+        </select>
+      </div>
 
       <button onClick={handleAddWaypoint} disabled={!selectedRegion} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
         Add Waypoint

@@ -1,26 +1,14 @@
 // app/_lib/StationWeather.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import WeatherCard from './WeatherCard';
 import { Cast, WeatherData } from './types';
 import ErrorComponent from './Error';
+import rateLimiter from './rateLimiter';
 
 interface StationWeatherProps {
   sid: string;
-}
-
-// 添加延迟函数
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-async function getWeatherData(sid: string): Promise<WeatherData> {
-  // 添加1秒延迟以避免请求过于频繁
-  await delay(1000);
-  const res = await fetch(`/api/weather?city=${sid}`);
-  if (!res.ok) {
-    throw new Error('Failed to fetch weather data');
-  }
-  return res.json();
 }
 
 export default function StationWeather({ sid }: StationWeatherProps) {
@@ -28,14 +16,36 @@ export default function StationWeather({ sid }: StationWeatherProps) {
   const [city, setCity] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+    
     async function fetchData() {
       try {
-        const weatherData = await getWeatherData(sid);
-        if (weatherData.status === '1' && weatherData.forecasts?.[0]?.casts?.length) {
-          setCasts(weatherData.forecasts[0].casts);
-          setCity(weatherData.forecasts[0].city);
+        // Use the rate limiter to control API requests
+        const data: WeatherData = await rateLimiter.schedule(async () => {
+          // Directly call AMap API instead of our own API route
+          const res = await fetch(`https://restapi.amap.com/v3/weather/weatherInfo?&city=${sid}&key=${process.env.NEXT_PUBLIC_AMAP_KEY}&extensions=all`);
+          
+          if (!res.ok) {
+            throw new Error(`Failed to fetch weather data: ${res.status} ${res.statusText}`);
+          }
+          
+          const jsonData = await res.json();
+          
+          // Check if AMap API returned an error
+          if (jsonData.status !== '1') {
+            throw new Error(`AMap API error: ${jsonData.info || 'Unknown error'}`);
+          }
+          
+          return jsonData;
+        });
+        
+        if (data.status === '1' && data.forecasts?.[0]?.casts?.length) {
+          setCasts(data.forecasts[0].casts);
+          setCity(data.forecasts[0].city);
         } else {
           throw new Error('No forecast data available');
         }

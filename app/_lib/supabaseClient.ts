@@ -18,6 +18,13 @@ export type Station = {
     province: string;
 }
 
+export type Adcode = {
+  province: string;
+  city: string;
+  region: string;
+  adcode: string;
+};
+
 export const getStations = async () => {
     const { data, error } = await supabase
         .from('all_stations')
@@ -57,4 +64,41 @@ export const getRouteDetailByName = async (name: string): Promise<RouteDetail | 
   }
   
   return data;
+};
+
+// 新增：获取指定省份的所有城市
+export const getCitiesByProvince = async (province: string) => {
+  const { data, error } = await supabase
+    .from('adcode')
+    .select('city')
+    .eq('province', province)
+    .neq('city', '')
+    .order('city');
+
+  if (error) {
+    console.error('Error fetching cities:', error);
+    return [];
+  }
+
+  // 去重并返回城市列表
+  const uniqueCities = Array.from(new Set(data.map(item => item.city)));
+  return uniqueCities;
+};
+
+// 新增：获取指定省份和城市的所有区域
+export const getRegionsByProvinceAndCity = async (province: string, city: string) => {
+  const { data, error } = await supabase
+    .from('adcode')
+    .select('region, adcode')
+    .eq('province', province)
+    .eq('city', city)
+    .neq('region', '')
+    .order('region');
+
+  if (error) {
+    console.error('Error fetching regions:', error);
+    return [];
+  }
+
+  return data as { region: string; adcode: string }[];
 };

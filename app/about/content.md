@@ -2,6 +2,23 @@
 
 Welcome to our advanced weather forecasting system!
 
+## 一些想法
+这是我第一次使用AI来创建一个项目，中间纯手写的代码很少。
+
+### 关于AI
+
+- 灵码智能助手其实比较好用的，感觉有点慢，但基本能用起来，目前还是免费。缺点是输入界面有问题，光标经常会落后于文字，这可能不是它的问题，有可能是fcitx的bug。
+- gemini cli: 感觉更智能更快一点。但问题是用了一天后，就无法使用。
+- 还有几个看了一下，没有试，主要是不知道免费的情况如何。比如trae, auggie cli. claud cli肯定不免费，据说是最好的。
+
+### 关于nextjs
+- 象我这样的业余项目，以部署为导向，希望利用github pages, cloud pages这样来部署。再更高级一点也许是使用vercel pages，或者cloudflare works。基于这个原因，需要了解ssr, isr,ssg, csr。ssr, isr都需要用到nextjs的服务功能，所以部署难度大。我一般就只能用ssg和csr,即服务器净态生成，和客户端渲染。
+- nextjs确实是集成了太多东西，很方便但又很复杂。碰到一个问题是useEffect会加载两次，这个默认设置碰上限制每秒并发的请求数的api简直就很很坑。ai帮我找了个办法避开了。据说设置中也可以让它只加载一次。
+- api限制每秒并发数问题：这个也困扰了很久。最后用bottlenecks库来限制并发数。
+
+### supabase
+- supabase是一个开源的数据服务，可以免费使用。确实好用。但首先要注意的是，每个表都要先创建policy。不然不会报错，也不能返回数据。
+
 ## Features
 
 - Real-time weather data
